@@ -1,0 +1,30 @@
+{
+  "name": "onthemarket-scraping",
+  "version": "1.0.0",
+  "description": "A property scraper for real estate listings.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "node --loader ts-node/esm src/index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "scraper",
+    "real estate",
+    "web scraping"
+  ],
+  "author": "Sweem",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^22.5.5",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0-dev.20240914"
+  }
+}
