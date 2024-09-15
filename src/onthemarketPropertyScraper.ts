@@ -1,34 +1,57 @@
-import 'dotenv/config';  
-import axios from 'axios';  
-import * as cheerio from 'cheerio';  
+import 'dotenv/config';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
-const API_URL = 'https://api.scraperapi.com';  
+const API_URL = 'https://api.scraperapi.com';
 
-interface Property {  
-    price: string;  
-    address: string;  
-    beds: string;  
-    bath: string;  
-    space: string;  
+interface Property {
+    price: string;
+    address: string;
+    beds: string;
+    bath: string; 
+    space: string;
     link: string | null;
-    contact: string;  
-}  
+    contact: string;
+}
 
-const onthemarketPropertyScraper = async (API_KEY: string, PAGE_URL: string): Promise<Property[]> => {  
-    console.log('Fetching data with ScraperAPI...');  
+export const getResponse = async (API_KEY: string, PAGE_URL: string): Promise<string> => {
+    console.log('Fetching data with ScraperAPI...');
+    
+    const queryParams = new URLSearchParams({
+        api_key: API_KEY,
+        url: PAGE_URL,
+        country_code: 'us'
+    });
 
-    const queryParams = new URLSearchParams({  
-        api_key: API_KEY,  
-        url: PAGE_URL,  
-        country_code: 'us'  
-    });  
+    const response = await axios.get(`${API_URL}?${queryParams.toString()}`);
+    const html = response.data;
+    return html
+}
 
-    try {  
-        const response = await axios.get(`${API_URL}?${queryParams.toString()}`);  
-        const html = response.data;  
-        const $ = cheerio.load(html);  
-        const propertyList: Property[] = []; // Define the type of propertyList  
-        console.log('Extracting information from the HTML...', html);  
+export const getSearchResultCount = async (API_KEY: string, PAGE_URL: string): Promise<number> => {
+    try {
+        const html = await getResponse(API_KEY, PAGE_URL)
+        const $ = cheerio.load(html);
+        let resultCount = 0
+        $(".text-denim.xl\\:text-xs").each((_, el) => {  
+            const results = $(el).text();  
+            resultCount = parseInt(results.split(" ")[0], 10);  
+        });
+
+        return resultCount
+    } catch(error) {
+        console.error('Error fetching data:', error);
+        return -1
+    }
+}
+
+export const onthemarketPropertyScraper = async (API_KEY: string, PAGE_URL: string): Promise<Property[]> => {
+    try {
+        const html = await getResponse(API_KEY, PAGE_URL)
+        const $ = cheerio.load(html);
+        const propertyList: Property[] = [];
+        console.log('onthemarketPropertyScraper', PAGE_URL)
+        // console.log('Extracting information from the HTML...', html);
 
         // $(".HomeCardContainer").each((_, el) => {  
         //     const price = $(el).find('.bp-Homecard__Price--value.span').length > 0 ?   
@@ -60,10 +83,8 @@ const onthemarketPropertyScraper = async (API_KEY: string, PAGE_URL: string): Pr
         // });  
         // console.log('JSON result:', propertyList);  
         return propertyList
-    } catch (error) {  
+    } catch (error) {
         console.error('Error fetching data:', error);
-        return []  
+        return []
     }  
-};  
-
-export default onthemarketPropertyScraper;
+};
