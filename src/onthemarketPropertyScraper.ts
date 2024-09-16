@@ -96,34 +96,28 @@ const getLastPage = (htmlString: string): number => {
 
 const pagePropertyScraper(API_KEY:string, idLists: string[]): Promise<Property[]> => {
     idLists.map((id) => {
+        const link_to_property = urlByID(id)
         html = getResponse(API_KEY, urlByID(id))
         const $ = cheerio.load(html)
-    })
-}
 
-const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]> => {
-    try {
-        const PAGE_URL = urlByID(id)
-        const html = await getResponse(API_KEY, PAGE_URL)
-        const $ = cheerio.load(html);
-        const propertyList: Property[] = [];
+        if (propertyListItem.length > 0) {
+            const price = $('.text-denim.price').text().trim(); 
+            const size = $('svg[data-icon="ruler-combined"]').parent().text().trim();
+            const address = ''
 
-        const lastPage = getLastPage(html)
-        for(let i = 1; i <= lastPage; i++ ) {
-            const idLists = idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
-            pagePropertyScraper(API_KEY, idLists)
-        }
+            let key_features = ''
+            $('.text-md.space-y-1.5.mt-6.font-heading').children('div').map((divElement) => {
+                const spans = $(divElement).find('span');
+                if (spans.length === 2) {
+                    const key_feature = spans.first().text().trim() + spans.last().text().trim(); 
+                }
+                key_features += key_features == '' ? key_feature : (', ' + key_feature)
+            })
 
-        console.log('onthemarketPropertyScraper', PAGE_URL)
-        const propertyListItem = $('li.w-full.relative');
-
-        // Extract property information from the selected <li>  
-        if (propertyListItem.length > 0) {  
-            const detailLink = propertyListItem.find('a.hover\\:underline.hover\\:opacity-80').first()
-            const id = extractPropertyId(detailLink.attr('href'))
-            const link_to_property = urlByID(id)
-            const price = detailLink.text().trim()
-
+            const description = $('div[item-prop="description"]').content().filter((i, el) => el.type === 'text').text().trim()
+            const agent_name = $('h2.text-base2.font-body').text().trim();
+            const agent_address = $('p.text-sm.text-slate').text().trim();
+            const agent_phone_number = $('.otm-Telephone.cursor-pointer ').text().trim();
 
 
             const price = propertyListItem.find('a.hover\\:underline.hover\\:opacity-80').first().text().trim();  
@@ -141,6 +135,22 @@ const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]>
 
         console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
         return propertyList
+    })
+}
+
+const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]> => {
+    try {
+        const PAGE_URL = urlByID(id)
+        const html = await getResponse(API_KEY, PAGE_URL)
+        const $ = cheerio.load(html);
+        const propertyList: Property[] = [];
+
+        const lastPage = getLastPage(html)
+        for(let i = 1; i <= lastPage; i++ ) {
+            const idLists = idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
+            pagePropertyScraper(API_KEY, idLists)
+        }
+        
     } catch (error) {
         console.error('Error fetching data:', error);
         return []
