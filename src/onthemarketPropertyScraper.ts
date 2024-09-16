@@ -96,19 +96,22 @@ const getLastPage = (htmlString: string): number => {
 
 const pagePropertyScraper(API_KEY:string, idLists: string[]): Promise<Property[]> => {
     idLists.map((id) => {
-
+        html = getResponse(API_KEY, urlByID(id))
+        const $ = cheerio.load(html)
     })
 }
 
-const propertyScraper = async (API_KEY: string, PAGE_URL: string): Promise<Property[]> => {
+const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]> => {
     try {
+        const PAGE_URL = urlByID(id)
         const html = await getResponse(API_KEY, PAGE_URL)
         const $ = cheerio.load(html);
         const propertyList: Property[] = [];
 
         const lastPage = getLastPage(html)
         for(let i = 1; i <= lastPage; i++ ) {
-            pagePropertyScraper(API_KEY, urlByPages(PAGE_URL, i))
+            const idLists = idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
+            pagePropertyScraper(API_KEY, idLists)
         }
 
         console.log('onthemarketPropertyScraper', PAGE_URL)
