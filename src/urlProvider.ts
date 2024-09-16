@@ -28,3 +28,11 @@ export const urlByBedMaxMin = (bedCount:number, location: string, maxPrice: numb
 export const urlTop = (location: string): string => {
     return `https://www.onthemarket.com/for-sale/property/${location}/?min-price=15000001&view=map-list`
 }
+
+export const urlByID = (id: string): string => {
+    return `https://www.onthemarket.com/details/${id}`
+}
+
+export const urlByPages = (originURL: string, id: number) => {
+    return originURL + `&page=${id}`
+}
