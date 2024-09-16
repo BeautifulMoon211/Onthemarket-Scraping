@@ -1,5 +1,5 @@
 import {getResponse, getSearchResultCount, onthemarketPropertyScraper} from './onthemarketPropertyScraper.js'
-import { urlByLocation, urlByMaxMin, urlsByBed } from './urlProvider.js'
+import { urlByLocation, urlByMaxMin, urlsByBed } from './urlProvider_old.js'
 
 const API_KEY = process.env.API_KEY ?? 'YOUR_DEFAULT_API_KEY' // <--- Enter your API key here
 
@@ -28,21 +28,12 @@ const getPeakPrice = (data: PercentageData[]) : number => {
     return result?.from
 }
 
-// const getPeakPriceCount = async (peakPrice: number) : Promise<number> => {
-//     let peakPriceCount = 0
-//     urlsByBed(peakPrice).map(async (pageUrlByBed) => {
-//         const priceByBed = await getSearchResultCount(API_KEY, pageUrlByBed)
-//         console.log(pageUrlByBed, priceByBed, "priceByBed: ", priceByBed)
-//         peakPriceCount += priceByBed
-//     })
-//     return peakPriceCount
-// }
 const getPeakPriceCount = async (peakPrice: number): Promise<number> => {  
     const results = await Promise.all(urlsByBed(peakPrice).map(async (pageUrlByBed) => {  
-        const priceByBed = await getSearchResultCount(API_KEY, pageUrlByBed);  
+        const priceByBed = await getSearchResultCount(API_KEY, pageUrlByBed);
         console.log(pageUrlByBed, "priceByBed: ", priceByBed);
         return priceByBed;
-    }));  
+    }));
 
     const peakPriceCount = results.reduce((total, count) => total + count, 0);  
     return peakPriceCount;  
@@ -94,5 +85,3 @@ const locationBasedScraper = async (location: string) => {
         }
     }
 }
-
-export default locationBasedScraper
