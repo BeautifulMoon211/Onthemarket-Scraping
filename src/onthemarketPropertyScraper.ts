@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import fs from 'fs';
+import { parse } from 'json2csv';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { urlByLocation, urlByBed, urlByBedMaxMin, urlTop, urlByID, urlByPages } from './urlProvider.js'
@@ -104,13 +106,10 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]): Promise<P
             const price = $('.text-denim.price').text().trim(); 
             const size = $('svg[data-icon="ruler-combined"]').parent().text().trim();
             const address = extractPropertyByRegex(html, /"display_address":"(.*?)","params":/)
-            const key_features = $('otm-ListItemOtmBullet.before\\:bg-denim')
-                .map((index, element) => {
-                    console.log("key_features", index, element)
-                    return `${index + 1}. ${$(element).text().trim()}`
-                })
+            const key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
+                .map((index, element) => `${index + 1}. ${$(element).text().trim()}`)
                 .get().join(', ');
-            const description = $('div[item-prop="description"]').contents().filter((i, el) => el.type === 'text').text().trim()
+            const description = $('div[item-prop="description"]').text().trim()
             const agent_name = $('h2.text-base2.font-body').text().trim();
             const agent_address = $('p.text-sm.text-slate').text().trim().replace(/\n/g, ' ');
             const agent_phone_number = $('.otm-Telephone.cursor-pointer ').text().trim();
@@ -133,6 +132,9 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]): Promise<P
             console.error(`Error processing ID ${id}: `, error)
         }
     }
+    // const csv = parse(propertyList)
+    // fs.writeFileSync('propertyList.csv', csv)
+
     return propertyList
 }
 
