@@ -7,7 +7,7 @@ const API_URL = 'https://api.scraperapi.com';
 const priceRange = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 210000, 220000, 230000, 240000, 250000, 275000, 300000, 325000, 350000, 375000, 400000, 425000, 450000, 475000, 500000, 550000, 600000, 650000, 700000, 750000, 800000, 850000, 900000, 950000, 1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000, 2300000, 2400000, 2500000, 2750000, 3000000, 3250000, 3500000, 3750000, 4000000, 4250000, 4500000, 4750000, 5000000, 5500000, 6000000, 6500000, 7000000, 7500000, 8000000, 8500000, 9000000, 9500000, 10000000, 12500000, 15000000]
 
 interface Property {
-    id: string,
+    id: string;
     link_to_property: string;
     price: string;
     size: string;
@@ -50,13 +50,12 @@ const getSearchResultCount = async (API_KEY: string, PAGE_URL: string): Promise<
     }
 }
 
-function extractPropertyId(url: string): string {  
-    const regex = /\/details\/(\d+)\//;
-    const match = url.match(regex);  
-    return match[1];
+function extractPropertyByRegex(url: string, regex: RegExp): string {
+    const match = url.match(regex);
+    return match ? match[1] : ""
 }
 
-const idListsScraper = async (API_KEY: string, PAGE_UTL): Promise<string[]> => {
+const idListsScraper = async (API_KEY: string, PAGE_URL: string): Promise<string[]> => {
     const innerIDs: string[] = []
     const outerURLs: string[] = []
 
@@ -67,14 +66,17 @@ const idListsScraper = async (API_KEY: string, PAGE_UTL): Promise<string[]> => {
         liLists.map((li) => {
             const idAttr = $(li).attr('id')
 
-            if (idAttr) {
-                if (idAttr.startsWith('result-')) {
-                    const id = idAttr.match(/result-(\d+)/)[1];
-                    innerIDs.push(id)
-                }
+            if (idAttr && idAttr.startsWith('result-')) {
+                innerIDs.push(extractPropertyByRegex(idAttr, /result-(\d+)/))
+                // const idMatch = idAttr.match(/result-(\d+)/);
+                // if (idMatch) {
+                //     const id = idMatch[1]
+                //     innerIDs.push(id)
+                // }
             } else {
                 const outerURL = $(li).find('.font-semibold a').attr('href')
-                outerURLs.push(outerURL)
+                if (outerURL)
+                    outerURLs.push(outerURL);
             }
         })
         return innerIDs
@@ -85,60 +87,66 @@ const idListsScraper = async (API_KEY: string, PAGE_UTL): Promise<string[]> => {
 }
 
 const getLastPage = (htmlString: string): number => {
-    const regex = /"last-link":\s*(\{[^]*?\})/;
-    const match = htmlString.match(regex);
-    if (match) {
-        const jsonStr = match[1];
-        return JSON.parse(jsonStr).page;
-    }
-    return -1
+    return JSON.parse(extractPropertyByRegex(htmlString, /"last-link":\s*(\{[^]*?\})/)).page
+    // const regex = /"last-link":\s*(\{[^]*?\})/;
+    // const match = htmlString.match(regex);
+    // if (match) {
+    //     const jsonStr = match[1];
+    //     return JSON.parse(jsonStr).page;
+    // }
+    // return -1
 }
 
-const pagePropertyScraper(API_KEY:string, idLists: string[]): Promise<Property[]> => {
-    idLists.map((id) => {
-        const link_to_property = urlByID(id)
-        html = getResponse(API_KEY, urlByID(id))
-        const $ = cheerio.load(html)
+const pagePropertyScraper = async (API_KEY:string, idLists: string[]): Promise<Property[]> => {
+    const propertyList: Property[] = [];
 
-        if (propertyListItem.length > 0) {
+    for (const id of idLists) {
+    // idLists.map(async (id) => {
+        try{
+            const link_to_property = urlByID(id)
+            const html = await getResponse(API_KEY, urlByID(id))
+            const $ = cheerio.load(html)
+
             const price = $('.text-denim.price').text().trim(); 
             const size = $('svg[data-icon="ruler-combined"]').parent().text().trim();
-            const address = ''
+            const address = extractPropertyByRegex(html, /"display_address":"(.*?)","params":/)
 
             let key_features = ''
             $('.text-md.space-y-1.5.mt-6.font-heading').children('div').map((divElement) => {
                 const spans = $(divElement).find('span');
                 if (spans.length === 2) {
                     const key_feature = spans.first().text().trim() + spans.last().text().trim(); 
+                    key_features += key_features == '' ? key_feature : (', ' + key_feature)
                 }
-                key_features += key_features == '' ? key_feature : (', ' + key_feature)
             })
 
-            const description = $('div[item-prop="description"]').content().filter((i, el) => el.type === 'text').text().trim()
+            const description = $('div[item-prop="description"]').contents().filter((i, el) => el.type === 'text').text().trim()
             const agent_name = $('h2.text-base2.font-body').text().trim();
             const agent_address = $('p.text-sm.text-slate').text().trim();
             const agent_phone_number = $('.otm-Telephone.cursor-pointer ').text().trim();
 
+            propertyList.push({
+                id: id,
+                link_to_property: link_to_property,
+                price: price,
+                size: size,
+                address: address,
+                key_features: key_features,
+                description: description,
+                agent_name: agent_name,
+                agent_address: agent_address,
+                agent_phone_number: agent_phone_number
+            })
 
-            const price = propertyListItem.find('a.hover\\:underline.hover\\:opacity-80').first().text().trim();  
-            const address = propertyListItem.find('address').text().trim();  
-            const propertyType = propertyListItem.find('.text-sm.mr-2').text().trim();  
-            const bedrooms = propertyListItem.find('.select-none.border.inline-flex span').first().text().trim();  
-            const bathrooms = propertyListItem.find('.select-none.border.inline-flex span').last().text().trim();
-            const floorArea = propertyListItem.find('div.text-sm.leading-relaxed.line-clamp-2 div').eq(0).text().trim();
-            const nearestStation = propertyListItem.find('div.text-sm.leading-relaxed.line-clamp-2 div').eq(1).text().trim();
-            const nearestSchool = propertyListItem.find('div.text-sm.leading-relaxed.line-clamp-2 div').eq(2).text().trim();
-            const agentName = propertyListItem.find('.font-bold.line-clamp-2').text().trim();
-            const agentPhone = propertyListItem.find('a.hover\\:underline.hover\\:opacity-80').last().text().trim();
-            const agentLogo = propertyListItem.find('img.max-w-[60px]').attr('src');
+            console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
+        } catch (error) {
+            console.error(`Error processing ID ${id}: `, error)
         }
-
-        console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
-        return propertyList
-    })
+    }
+    return propertyList
 }
 
-const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]> => {
+const propertyScraper = async (API_KEY: string, id: string) => {
     try {
         const PAGE_URL = urlByID(id)
         const html = await getResponse(API_KEY, PAGE_URL)
@@ -147,7 +155,7 @@ const propertyScraper = async (API_KEY: string, id: string): Promise<Property[]>
 
         const lastPage = getLastPage(html)
         for(let i = 1; i <= lastPage; i++ ) {
-            const idLists = idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
+            const idLists = await idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
             pagePropertyScraper(API_KEY, idLists)
         }
         
