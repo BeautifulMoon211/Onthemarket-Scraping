@@ -14,15 +14,20 @@ export const urlByBed = (location: string, bedCount: number): string => {
     }
 }
 
-export const urlByBedMaxMin = (bedCount:number, location: string, maxPrice: number, minPrice: number): string => {
+export const urlByBedMaxMin = (location: string, bedCount:number, maxPrice: number, minPrice: number): string => {
+    let url: string;
     switch (bedCount) {
         case 0:
-            return `https://www.onthemarket.com/for-sale/property/${location}/?max-bedrooms=0&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
+            url = `https://www.onthemarket.com/for-sale/property/${location}/?max-bedrooms=0&min-bedrooms=0&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
         case 10:
-            return `https://www.onthemarket.com/for-sale/property/${location}/?min-bedrooms=10&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
+            url = `https://www.onthemarket.com/for-sale/property/${location}/?min-bedrooms=10&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
         default:
-            return `https://www.onthemarket.com/for-sale/property/${location}/?max-bedrooms=${bedCount}&min-bedrooms=${bedCount}&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
+            url = `https://www.onthemarket.com/for-sale/property/${location}/?max-bedrooms=${bedCount}&min-bedrooms=${bedCount}&max-price=${maxPrice}&min-price=${minPrice}&view=map-list`
     }
+    const result =  minPrice == 0 ? url.replace('&min-price=0', '') : url
+    // console.log("urlByBedMaxMin Result: ", result)
+    return result
+    // return minPrice == 0 ? url.replace('&min-price=0', '') : url
 }
 
 export const urlTop = (location: string): string => {
