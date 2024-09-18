@@ -1,11 +1,13 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { parse } from 'json2csv';
+// import { parse } from 'json2csv';
+import * as csv from 'fast-csv'
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { urlByLocation, urlByBed, urlByBedMaxMin, urlTop, urlByID, urlByPages } from './urlProvider.js'
 
 const API_URL = 'https://api.scraperapi.com';
+const writeStream = fs.createWriteStream(`propertyLists.csv`)
 
 interface Property {
     id: string;
@@ -132,8 +134,21 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]): Promise<P
             console.error(`Error processing ID ${id}: `, error)
         }
     }
-    // const csv = parse(propertyList)
-    // fs.writeFileSync('propertyList.csv', csv)
+    csv.write(propertyList, { headers: true })
+    .on("finish", () => {
+        console.log(`CSV file has been written.`)
+    }).pipe(writeStream)
+    // const writeStream = fs.createWriteStream('propertyList.csv');
+    // const parse = csv.parse({
+    //     ignoreEmpty: true,
+    //     discardUnmappedColumns: true,
+    //     headers: ['id', 'link_to_property', 'price', 'size', 'address', 'key_features', 'description', 'agent_name', 'agent_address', 'agent_phone_number'],
+    // })
+    // const transform = csv.format({headers: true})
+    //     .transform((row) => ({
+
+    //     }))
+    // format(propertyList, { headers: true }).pipe(ws);
 
     return propertyList
 }

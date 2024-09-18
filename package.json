@@ -22,11 +22,8 @@
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
-    "fs": "^0.0.1-security",
-    "json2csv": "^6.0.0-alpha.2",
-    "ts-node": "^10.9.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.0-dev.20240914"
+    "fast-csv": "^5.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
   }
 }
