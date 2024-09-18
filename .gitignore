@@ -1,4 +1,5 @@
 .env
 package-lock.json
+yarn.lock
 node_modules
-propertyLists.csv
+*.csv
