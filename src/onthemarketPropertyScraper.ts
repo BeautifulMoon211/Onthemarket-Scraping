@@ -6,7 +6,7 @@ import * as cheerio from 'cheerio';
 import { urlByLocation, urlByBed, urlByBedMaxMin, urlTop, urlByID, urlByPages } from './urlProvider.js'
 
 const API_URL = 'https://api.scraperapi.com';
-const writeStream = fs.createWriteStream(`propertyLists.csv`, { encoding: 'utf-8' })
+let writeStream;
 
 interface Property {
     id: string;
@@ -23,7 +23,7 @@ interface Property {
 const propertyList: Property[] = [];
 
 const getResponse = async (API_KEY: string, PAGE_URL: string): Promise<string> => {
-    console.log('Fetching data with ScraperAPI...', API_KEY, PAGE_URL);
+    // console.log('Fetching data with ScraperAPI...', API_KEY, PAGE_URL);
 
     const queryParams = new URLSearchParams({
         api_key: API_KEY,
@@ -35,7 +35,12 @@ const getResponse = async (API_KEY: string, PAGE_URL: string): Promise<string> =
         const response = API_KEY === 'YOUR_DEFAULT_API_KEY' 
             ? await axios.get(PAGE_URL) 
             : await axios.get(`${API_URL}?${queryParams.toString()}`)
-
+        if (!response.data) {  
+            throw new Error('No data received from API');  
+        }  
+        // console.log('Raw response data:', response.data)
+        // console.log('Response headers:', response.headers);  
+        // console.log('Response status:', response.status);
         return response.data;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -49,7 +54,9 @@ const getSearchResultCount = async (API_KEY: string, PAGE_URL: string): Promise<
         const $ = cheerio.load(html);
         let resultCount = 0
         $(".text-denim.xl\\:text-xs").each((_, el) => {
-            const results = $(el).text();
+            const results = $(el).text()
+                .replace('+', '')
+                .replace(',', '');
             resultCount = parseInt(results.split(" ")[0], 10);
         });
 
@@ -92,26 +99,33 @@ const idListsScraper = async (API_KEY: string, PAGE_URL: string): Promise<string
 }
 
 const getLastPage = (htmlString: string): number => {
-    return JSON.parse(extractPropertyByRegex(htmlString, /"last-link":\s*(\{[^]*?\})/)).page
+    const lastPageResponse = extractPropertyByRegex(htmlString, /"last-link":\s*(\{[^]*?\})/)
+    if (lastPageResponse)
+        return JSON.parse(lastPageResponse).page
+    else
+        return 1
 }
 
 const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
     for (const id of idLists) {
+        // console.log("pagePropertyScraper", id)
         try{
             const link_to_property = urlByID(id)
             const html = await getResponse(API_KEY, link_to_property)
             const $ = cheerio.load(html)
 
             const price = $('.text-denim.price').text().trim(); 
-            const size = $('svg[data-icon="ruler-combined"]').parent().text().trim();
-            const address = extractPropertyByRegex(html, /"display_address":"(.*?)","params":/)
+            const size = getValidResult($('svg[data-icon="ruler-combined"]').parent().text().trim())
+            const address = extractPropertyByRegex(html, /"display_address":"(.*?)"(?:,"params":|,)/);
             
             let key_features: string = ''
             key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
                 .map((index, element) => `${index + 1}. ${$(element).text().trim()}`)
                 .get().join(', ');
-            if (key_features == '') {
+            // console.log(key_features)
+            if (key_features == '' || key_features.indexOf('2.') == -1) { // if `Property description & features` have no features or only one feature.
                 $('div[class="text-md space-y-1.5 mt-6 font-heading"]').children('div').each((index, divElement) => {
+                    // console.log('index', index)
                     const spans = $(divElement).find('span');
                     const atag = $(divElement).find('a');
                     if (spans.length === 2) {
@@ -122,6 +136,7 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
                         key_features += key_features == '' ? key_feature : (', ' + key_feature)
                     }
             })}
+            key_features = getValidResult(key_features)
 
             const description = $('div[item-prop="description"]').text()
                 .replace(/Description/g, ' ')
@@ -153,11 +168,18 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
     }
 }
 
+const getValidResult = (result: string): string => {
+    return result === '' ? 'Ask agent' : result
+}
+
 const propertyScraper = async (API_KEY: string, PAGE_URL: string) => {
+    // console.log('propertyScraper, pageURL: ', PAGE_URL)
     try {
         const html = await getResponse(API_KEY, PAGE_URL)
         const lastPage = getLastPage(html)
+        // console.log('lastPage: ', lastPage)
         for(let i = 1; i <= lastPage; i++ ) {
+            // console.log("propertyScraper Page: ", i)
             const idLists = await idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
             await pagePropertyScraper(API_KEY, idLists)
         }
@@ -167,29 +189,39 @@ const propertyScraper = async (API_KEY: string, PAGE_URL: string) => {
 }
 
 const bedMaxMinBasedScraper = async (API_KEY: string, location: string, bedCount: number, maxPrice: number, minPrice: number) => {
-    console.log("bedMaxMinBasedScraper", API_KEY, location, bedCount, maxPrice, minPrice)
-    const pageURL = urlByBed(location, bedCount)
+    // console.log("bedMaxMinBasedScraper", API_KEY, location, bedCount, maxPrice, minPrice)
+    // const pageURL = urlByBed(location, bedCount)
+    const pageURL = urlByBedMaxMin(location, bedCount, maxPrice, minPrice)
     const resultCount = await getSearchResultCount(API_KEY, pageURL)
-    if (resultCount > 1000) {
+    // console.log("resultCount: ", resultCount)
+    if (resultCount >= 1000) {
         const middlePrice = Number((maxPrice + minPrice) / 2)
-        await bedMaxMinBasedScraper(API_KEY, location, bedCount, minPrice, middlePrice)
-        await bedMaxMinBasedScraper(API_KEY, location, bedCount, middlePrice + 1, maxPrice)
+        await bedMaxMinBasedScraper(API_KEY, location, bedCount, middlePrice, minPrice)
+        await bedMaxMinBasedScraper(API_KEY, location, bedCount, maxPrice, middlePrice + 1)
     } else {
-        propertyScraper(API_KEY, pageURL)
+        await propertyScraper(API_KEY, pageURL)
     }
 }
 
-const bedBasedScraper = async(API_KEY: string, location: string) => {
-    // for (let bedCount = 0; bedCount < 11; bedCount++) {
-    //     await bedMaxMinBasedScraper(API_KEY, location, bedCount, 0, 15000000)
-    // }
-    await propertyScraper(API_KEY, urlTop(location))
-    console.log("FINISH", propertyList.length)
-
+const csvWriter = (location: string) => {
+    writeStream = fs.createWriteStream(`${location}.csv`, { encoding: 'utf-8' })
     csv.write(propertyList, { headers: true })
     .on("finish", () => {
         console.log(`CSV file has been written.`)
     }).pipe(writeStream)
+}
+
+const bedBasedScraper = async(API_KEY: string, location: string) => {
+    // for (let bedCount = 0; bedCount < 11; bedCount++) {
+    //     await bedMaxMinBasedScraper(API_KEY, location, bedCount, 15000000, 0)
+    //     console.log("bedCount: ", bedCount, propertyList.length)
+    // }
+    // await bedMaxMinBasedScraper(API_KEY, location, 0, 15000000, 0)
+    await pagePropertyScraper(API_KEY, ['13419601'])
+    // await propertyScraper(API_KEY, urlTop(location))
+    console.log("FINISH", propertyList.length)
+
+    csvWriter(location)
 }
 
 export default bedBasedScraper
