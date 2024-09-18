@@ -105,15 +105,27 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
             const price = $('.text-denim.price').text().trim(); 
             const size = $('svg[data-icon="ruler-combined"]').parent().text().trim();
             const address = extractPropertyByRegex(html, /"display_address":"(.*?)","params":/)
-            const key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
+            
+            let key_features: string = ''
+            key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
                 .map((index, element) => `${index + 1}. ${$(element).text().trim()}`)
                 .get().join(', ');
-            // const description = $('div[item-prop="description"]').text().trim()
-            // const description = $('div[item-prop="description"]').text()
-            // const description = $('div[item-prop="description"]').text().replace(/\s*\n\s*/g, ' ').trim();
+            if (key_features == '') {
+                $('div[class="text-md space-y-1.5 mt-6 font-heading"]').children('div').each((index, divElement) => {
+                    const spans = $(divElement).find('span');
+                    const atag = $(divElement).find('a');
+                    if (spans.length === 2) {
+                        const key_feature = `${index + 1}. ${spans.first().text().trim()}${spans.last().text().trim()}`;
+                        key_features += key_features == '' ? key_feature : (', ' + key_feature)
+                    } else if (spans.length === 1 && atag.length === 1) {
+                        const key_feature = `${index + 1}. ${spans.text().trim()}${atag.text().trim()}`;
+                        key_features += key_features == '' ? key_feature : (', ' + key_feature)
+                    }
+            })}
+
             const description = $('div[item-prop="description"]').text()
-                .replace(/Description/g, '')
-                .replace(/Location.*$/g, '')
+                .replace(/Description/g, ' ')
+                .replace(/Location/g, ' ')
                 .replace(/\s{2,}/g, ' ')
                 .replace(/\s*\n\s*/g, ' ')
                 .trim();
