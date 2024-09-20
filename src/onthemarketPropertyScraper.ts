@@ -19,7 +19,6 @@ interface Property {
     agent_phone_number: string;
 }
 const propertyList: Property[] = [];
-
 const outerURLs: string[] = []
 
 const getResponse = async (PAGE_URL: string): Promise<string> => {
@@ -35,6 +34,24 @@ const getResponse = async (PAGE_URL: string): Promise<string> => {
     }
 }
 
+const getSearchResultCount = async (PAGE_URL: string): Promise<number> => {
+    try {
+        const html = await getResponse(PAGE_URL)
+        const $ = cheerio.load(html);
+        let resultCount = 0
+        $(".text-denim.xl\\:text-xs").each((_, el) => {
+            const results = $(el).text()
+                .replace('+', '')
+                .replace(',', '');
+            resultCount = parseInt(results.split(" ")[0], 10);
+        });
+
+        return resultCount
+    } catch(error) {
+        console.error('Error fetching data:', error);
+        return -1
+    }
+}
 function extractPropertyByRegex(url: string, regex: RegExp): string {
     const match = url.match(regex);
     return match ? match[1] : ""
@@ -89,7 +106,7 @@ const pagePropertyScraper = async (idLists: string[]) => {
             key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
                 .map((index, element) => `${index + 1}. ${$(element).text().trim()}`)
                 .get().join(', ');
-            if (key_features == '' || key_features.indexOf('2.') == -1) { // if `Property description & features` have no features or only one feature.
+            if (key_features == '' || key_features.indexOf('2.') == -1) {
                 $('div[class="text-md space-y-1.5 mt-6 font-heading"]').children('div').each((index, divElement) => {
                     const spans = $(divElement).find('span');
                     const atag = $(divElement).find('a');
@@ -152,15 +169,27 @@ const propertyScraper = async (PAGE_URL: string) => {
     }
 }
 
+const bedMaxMinBasedScraper = async (location: string, bedCount: number, maxPrice: number, minPrice: number) => {
+    const pageURL = urlByBedMaxMin(location, bedCount, maxPrice, minPrice)
+    const resultCount = await getSearchResultCount(pageURL)
+    if (resultCount >= 1000) {
+        const middlePrice = Number((maxPrice + minPrice) / 2)
+        await bedMaxMinBasedScraper(location, bedCount, middlePrice, minPrice)
+        await bedMaxMinBasedScraper(location, bedCount, maxPrice, middlePrice + 1)
+    } else {
+        await propertyScraper(pageURL)
+    }
+}
+
 const csvWriter = (location: string) => {
     writeStream = fs.createWriteStream(`${location}.csv`, { encoding: 'utf-8' })
-    csv.write(propertyList, { headers: true })
-    .on("finish", () => {
-        console.log(`CSV file has been written.`)
-    }).pipe(writeStream)
+    csv.write(propertyList, { headers: true }).pipe(writeStream)
 }
 
 const bedBasedScraper = async(location: string) => {
+    for (let bedCount = 0; bedCount < 11; bedCount++) {
+        await bedMaxMinBasedScraper(location, bedCount, 15000000, 0)
+    }
     await propertyScraper(urlTop(location))
     console.log("\nSome estates are not involed in www.onthemarket.com, just linked. They are", String(outerURLs), `     Total number is ${outerURLs.length}`)
 
