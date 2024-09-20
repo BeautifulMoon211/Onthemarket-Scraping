@@ -2,7 +2,7 @@ import fs from 'fs';
 import * as csv from 'fast-csv'
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { urlTop, urlByID, urlByPages } from './urlProvider.js'
+import { urlTop, urlByID, urlByPages, urlByBedMaxMin } from './urlProvider.js'
 
 let writeStream;
 
@@ -142,7 +142,7 @@ const pagePropertyScraper = async (idLists: string[]) => {
                 agent_address: agent_address,
                 agent_phone_number: agent_phone_number
             })
-            console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
+            // console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
         } catch (error) {
             console.error(`Error processing ID ${id}: `, error)
         }
@@ -170,13 +170,17 @@ const propertyScraper = async (PAGE_URL: string) => {
 }
 
 const bedMaxMinBasedScraper = async (location: string, bedCount: number, maxPrice: number, minPrice: number) => {
+    console.log(`\nbedMaxMinBasedScraper(${location}, ${bedCount}, ${maxPrice}, ${minPrice})`)
     const pageURL = urlByBedMaxMin(location, bedCount, maxPrice, minPrice)
     const resultCount = await getSearchResultCount(pageURL)
+    console.log(`Total number of results from ${minPrice} to ${maxPrice} is ${resultCount == 1000 ? '1000+' : resultCount}`)
     if (resultCount >= 1000) {
         const middlePrice = Number((maxPrice + minPrice) / 2)
+        console.log(`It is higher than 1000, it can't be displayed at one time, so break into two - FROM ${minPrice} TO ${middlePrice}   AND   FROM ${middlePrice + 1} TO ${maxPrice}!`)
         await bedMaxMinBasedScraper(location, bedCount, middlePrice, minPrice)
         await bedMaxMinBasedScraper(location, bedCount, maxPrice, middlePrice + 1)
     } else {
+        console.log(`It is less than 1000, it can be displayed at one time, so scrape it.`)
         await propertyScraper(pageURL)
     }
 }
@@ -187,6 +191,7 @@ const csvWriter = (location: string) => {
 }
 
 const bedBasedScraper = async(location: string) => {
+    console.log(`Let's start.`)
     for (let bedCount = 0; bedCount < 11; bedCount++) {
         await bedMaxMinBasedScraper(location, bedCount, 15000000, 0)
     }
