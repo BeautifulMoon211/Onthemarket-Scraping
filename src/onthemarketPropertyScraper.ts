@@ -4,7 +4,6 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { urlTop, urlByID, urlByPages } from './urlProvider.js'
 
-const API_URL = 'https://api.scraperapi.com';
 let writeStream;
 
 interface Property {
