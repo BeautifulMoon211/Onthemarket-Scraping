@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import fs from 'fs';
 import * as csv from 'fast-csv'
 import axios from 'axios';
