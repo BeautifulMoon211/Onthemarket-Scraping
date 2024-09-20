@@ -3,7 +3,7 @@ import fs from 'fs';
 import * as csv from 'fast-csv'
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { urlByBedMaxMin, urlTop, urlByID, urlByPages } from './urlProvider.js'
+import { urlTop, urlByID, urlByPages } from './urlProvider.js'
 
 const API_URL = 'https://api.scraperapi.com';
 let writeStream;
@@ -22,18 +22,11 @@ interface Property {
 }
 const propertyList: Property[] = [];
 
-const getResponse = async (API_KEY: string, PAGE_URL: string): Promise<string> => {
+const outerURLs: string[] = []
 
-    const queryParams = new URLSearchParams({
-        api_key: API_KEY,
-        url: PAGE_URL,
-        country_code: 'us'
-    });
-
+const getResponse = async (PAGE_URL: string): Promise<string> => {
     try {
-        const response = API_KEY === 'YOUR_DEFAULT_API_KEY' 
-            ? await axios.get(PAGE_URL) 
-            : await axios.get(`${API_URL}?${queryParams.toString()}`)
+        const response = await axios.get(PAGE_URL)
         if (!response.data) {  
             throw new Error('No data received from API');  
         }  
@@ -44,36 +37,16 @@ const getResponse = async (API_KEY: string, PAGE_URL: string): Promise<string> =
     }
 }
 
-const getSearchResultCount = async (API_KEY: string, PAGE_URL: string): Promise<number> => {
-    try {
-        const html = await getResponse(API_KEY, PAGE_URL)
-        const $ = cheerio.load(html);
-        let resultCount = 0
-        $(".text-denim.xl\\:text-xs").each((_, el) => {
-            const results = $(el).text()
-                .replace('+', '')
-                .replace(',', '');
-            resultCount = parseInt(results.split(" ")[0], 10);
-        });
-
-        return resultCount
-    } catch(error) {
-        console.error('Error fetching data:', error);
-        return -1
-    }
-}
-
 function extractPropertyByRegex(url: string, regex: RegExp): string {
     const match = url.match(regex);
     return match ? match[1] : ""
 }
 
-const idListsScraper = async (API_KEY: string, PAGE_URL: string): Promise<string[]> => {
+const idListsScraper = async (PAGE_URL: string): Promise<string[]> => {
     const innerIDs: string[] = []
-    const outerURLs: string[] = []
 
     try {
-        const html = await getResponse(API_KEY, PAGE_URL)
+        const html = await getResponse(PAGE_URL)
         const $ = cheerio.load(html);
         const liLists = $('li.w-full.relative');
         liLists.each((_, li) => {
@@ -102,11 +75,12 @@ const getLastPage = (htmlString: string): number => {
         return 1
 }
 
-const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
+const pagePropertyScraper = async (idLists: string[]) => {
     for (const id of idLists) {
+        console.log(`ID: ${id}`)
         try{
             const link_to_property = urlByID(id)
-            const html = await getResponse(API_KEY, link_to_property)
+            const html = await getResponse(link_to_property)
             const $ = cheerio.load(html)
 
             const price = $('.text-denim.price').text().trim(); 
@@ -153,6 +127,7 @@ const pagePropertyScraper = async (API_KEY:string, idLists: string[]) => {
                 agent_address: agent_address,
                 agent_phone_number: agent_phone_number
             })
+            console.log("id: ", id, "link_to_property: ", link_to_property, "price: ", price, "size: ", size, "address: ", address, "key_features: ", key_features, "description: ", description, "agent_name: ", agent_name, "agent_address: ", agent_address, "agent_phone_numbe: ", agent_phone_number)
         } catch (error) {
             console.error(`Error processing ID ${id}: `, error)
         }
@@ -163,28 +138,19 @@ const getValidResult = (result: string): string => {
     return result === '' ? 'Ask agent' : result
 }
 
-const propertyScraper = async (API_KEY: string, PAGE_URL: string) => {
+const propertyScraper = async (PAGE_URL: string) => {
     try {
-        const html = await getResponse(API_KEY, PAGE_URL)
+        const html = await getResponse(PAGE_URL)
         const lastPage = getLastPage(html)
+        console.log(`The last page index is ${lastPage}`)
+
         for(let i = 1; i <= lastPage; i++ ) {
-            const idLists = await idListsScraper(API_KEY, urlByPages(PAGE_URL, i))
-            await pagePropertyScraper(API_KEY, idLists)
+            const idLists = await idListsScraper(urlByPages(PAGE_URL, i))
+            console.log(`\nPage ${i}`)
+            await pagePropertyScraper(idLists)
         }
     } catch (error) {
         console.error('Error fetching data:', error);
-    }
-}
-
-const bedMaxMinBasedScraper = async (API_KEY: string, location: string, bedCount: number, maxPrice: number, minPrice: number) => {
-    const pageURL = urlByBedMaxMin(location, bedCount, maxPrice, minPrice)
-    const resultCount = await getSearchResultCount(API_KEY, pageURL)
-    if (resultCount >= 1000) {
-        const middlePrice = Number((maxPrice + minPrice) / 2)
-        await bedMaxMinBasedScraper(API_KEY, location, bedCount, middlePrice, minPrice)
-        await bedMaxMinBasedScraper(API_KEY, location, bedCount, maxPrice, middlePrice + 1)
-    } else {
-        await propertyScraper(API_KEY, pageURL)
     }
 }
 
@@ -196,12 +162,9 @@ const csvWriter = (location: string) => {
     }).pipe(writeStream)
 }
 
-const bedBasedScraper = async(API_KEY: string, location: string) => {
-    for (let bedCount = 0; bedCount < 11; bedCount++) {
-        await bedMaxMinBasedScraper(API_KEY, location, bedCount, 15000000, 0)
-        console.log("bedCount: ", bedCount, propertyList.length)
-    }
-    await propertyScraper(API_KEY, urlTop(location))
+const bedBasedScraper = async(location: string) => {
+    await propertyScraper(urlTop(location))
+    console.log("\nSome estates are not involed in www.onthemarket.com, just linked. They are", String(outerURLs), `     Total number is ${outerURLs.length}`)
 
     csvWriter(location)
 }

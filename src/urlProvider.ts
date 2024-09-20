@@ -12,6 +12,7 @@ export const urlByBedMaxMin = (location: string, bedCount:number, maxPrice: numb
 }
 
 export const urlTop = (location: string): string => {
+    console.log("\nURL to scrape the real estate which price is higher than 15,000,001 is", `https://www.onthemarket.com/for-sale/property/${location}/?min-price=15000001&view=map-list`)
     return `https://www.onthemarket.com/for-sale/property/${location}/?min-price=15000001&view=map-list`
 }
 
