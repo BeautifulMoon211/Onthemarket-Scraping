@@ -106,7 +106,7 @@ const pagePropertyScraper = async (idLists: string[]) => {
             key_features = $('.otm-ListItemOtmBullet.before\\:bg-denim')
                 .map((index, element) => `${index + 1}. ${$(element).text().trim()}`)
                 .get().join(', ');
-            if (key_features == '' || key_features.indexOf('2.') == -1) { // if `Property description & features` have no features or only one feature.
+            if (key_features == '' || key_features.indexOf('2.') == -1) {
                 $('div[class="text-md space-y-1.5 mt-6 font-heading"]').children('div').each((index, divElement) => {
                     const spans = $(divElement).find('span');
                     const atag = $(divElement).find('a');
