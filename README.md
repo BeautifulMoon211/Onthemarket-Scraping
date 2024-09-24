@@ -1,37 +1,26 @@
 <h1 align="center">Onthemarket-Scraping</h1>
-<a href="https://www.yelp.com">
+<a href="https://www.onthemarket.com">
   <div align="center">
-    <br><img align-"center" src="https://www.clipartmax.com/png/full/142-1429407_yelp-reviews-5-star-yelp-logo.png" width='300'/>
+    <br><img align-"center" src="https://raw.githubusercontent.com/BeautifulMoon211/Onthemarket-Scraping/refs/heads/auxiliary/onthemarket_logo.png" width='300'/>
   </div><br>
 </a>
 
->This project is mainly used to collect business and customer data from Yelp.com for getting information of [Solar companies](https://www.yelp.com/search?find_desc=Solar&find_loc=New+York%2C+NY%2C+United+States/).
+>This project is primarily focused on extracting real estate information from OnTheMarket.com, a leading property portal in the United Kingdom. Through this initiative, we aim to gather comprehensive data on various properties listed on the platform, including residential and commercial listings, their prices, locations, specifications, and other pertinent attributes.
 
-### Why is Yelp Important for Business?
-Yelp is essential for business because it allows customers to leave reviews and feedback about their experiences. This helps other potential customers make informed decisions about whether or not to patronize a particular business. In addition, companies can use Yelp to track their customer satisfaction levels and make necessary improvements.
+### Should You Consider Using OnTheMarket for Your Property Search?
+OnTheMarket is a United Kingdom property portal similar to Rightmove and Zoopla. In October 2023, it was announced that the firm would be acquired by CoStar Group for £99 million. On December 12, the Washington, D.C.-based property data company reported having completed the purchase of OnTheMarket plc. 
 
-Yelp also provides businesses with an advertising platform. Companies can create ads that target potential customers in their area. This is a great way to reach new customers and grow your business.
+User reviews indicate that OnTheMarket has a solid rating of [3.6 stars](https://uk.trustpilot.com/review/onthemarket.com) on Trustpilot, which is comparable to [Rightmove](https://www.rightmove.co.uk/)'s [3.6 stars](https://www.trustpilot.com/review/www.rightmove.co.uk) rating, while [Zoopla](https://www.zoopla.co.uk/) stands at a lower [2.3 stars](https://uk.trustpilot.com/review/www.zoopla.co.uk). This suggests that OnTheMarket has garnered a reasonably positive reception among its users, indicating that many have had satisfactory experiences with the platform.
 
-Overall, Yelp is essential for businesses to connect with their customers and grow their business.
+Overall, using OnTheMarket is considered a good option for anyone looking to navigate the UK property market, backed by a growing company with positive user feedback. If you're searching for a home or investment property, OnTheMarket should definitely be on your list of resources to explore.
 
-### Is Yelp Helpful?
-As a business owner, you may wonder if Yelp is worth your time. After all, there are a lot of reviews on there, and it can be tough to keep track of them all. And what if someone leaves a negative review?
-
-Well, Yelp can be quite helpful for businesses. First, it’s a great way to get your business name out there. People are always searching for companies on Yelp, so if you’re not listed, you could miss out on potential customers.
-
-Yelp can also be a great way to get feedback from customers. You can see what people liked and didn’t like about your business and make changes accordingly. And if you do get a negative review, you can use it as an opportunity to improve your business.
-
-So if you’re wondering whether or not Yelp is worth your time, the answer is yes! It’s a great way to promote your business and get customer feedback.
-<a href="https://www.enterpriseappstoday.com/stats/yelp-statistics.html">
+<a href="https://twitter.com/OnTheMarketCom/status/1819010455219699757">
   <div align="center">
-    <img align-"center" src="https://media.licdn.com/dms/image/v2/D5612AQGuSurjRLKudA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1712069297537?e=2147483647&v=beta&t=v2UBQrYRFoEUhj979QRzWBQ52JbDFb62QIUnZljRz0U"/>
+    <img align-"center" src="https://raw.githubusercontent.com/BeautifulMoon211/Onthemarket-Scraping/refs/heads/auxiliary/onthemarket-1.jfif"/>
   </div>
 </a>
-I hope this blog will help you understand. - <a href="https://www.enterpriseappstoday.com/stats/yelp-statistics.html">
-  Yelp Statistics 2024 By Business Category, Star Rating Distribution, Visitors, Platform, Country and Consumers
-</a> 
 
-## Yelp Scraper
+## Onthemarket Scraper
 > You can scrape a bunch of comprehensive information of companies for specific field such as company name, website link, phone number, located address, owner name, provided services and several contact informations.
 
 - *Name:* Sunation Energy
@@ -84,13 +73,6 @@ Based on coordinates from Yelp Scraper and Coordinates Finder, let's find cities
     <img align-"center" src="https://maps.googleapis.com/maps/api/staticmap?size=315x150&sensor=false&client=gme-yelp&language=en&scale=1&path=color%3A0x1F8EFF70%7Cweight%3A2%7Cfillcolor%3A0x1F8EFF40%7C40.727172%2C-73.814309%7C40.582027%2C-73.769150%7C40.582027%2C-73.423253%7C40.609850%2C-71.856214%7C41.290122%2C-71.856214%7C41.290122%2C-73.497061%7C40.922801%2C-73.769150%7C40.752494%2C-73.814309%7C40.727172%2C-73.814309&markers=scale%3A1%7Cicon%3Ahttps%3A%2F%2Fyelp-images.s3.amazonaws.com%2Fassets%2Fmap-markers%2Fannotation_32x43.png%7C40.790157%2C-73.130497&signature=zBbAcfjde_skqiuiSu9wE2RiNRQ=" width='315px'/>
   </div></br>
 </a>
-
-```
-These cities are in the blue box!!!
-The totla number of cities :  177
-Cities are :  ['LARCHMONT', 'GREAT NECK ESTATES', 'KINGS POINT', 'MAMARONECK', 'LAWRENCE', 'GREAT NECK', 'CEDARHURST', 'SANDS POINT', 'HARRISON', 'MANORHAVEN', 'THOMASTON', 'ELMONT', 'WOODMERE', 'LAKE SUCCESS', 'VALLEY STREAM', 'FLORAL PARK', 'PORT WASHINGTON NORTH', 'NORTH VALLEY STREAM', 'MANHASSET', 'PORT WASHINGTON', 'HEWLETT', 'NORTH NEW HYDE PARK', 'NEW HYDE PARK', 'RYE', 'FLOWER HILL', 'MUNSEY PARK', 'FRANKLIN SQUARE', 'MALVERNE', 'LYNBROOK', 'EAST ROCKAWAY', 'PORT CHESTER', 'LONG BEACH', 'ISLAND PARK', 'LAKEVIEW', 'ROSLYN', 'WEST HEMSTEAD', 'ROSLYN HEIGHTS', 'WILLISTON PARK', 'SEA CLIFF', 'ALBERTSON', 'ROCKVILLE CENTRE', 'LOS PADRES NATIONAL FOREST SANTA', 'LAND', 'MINEOLA', 'OCEANSIDE', 'EAST WILLISTON', 'GARDEN CITY', 'GLEN COVE', 'GREENWICH', 'EAST HILLS', 'HEMPSTEAD', 'BALDWIN', 'CARLE PLACE', 'OLD BROOKVILLE', 'OLD WESTBURY', 'UNIONDALE', 'ROOSEVELT', 'WESTBURY', 'FREEPORT', 'BROOKVILLE', 'NORTH MERRICK', 'BAYVILLE', 'SOUTH WESTBURY', 'EAST MEADOW', 'MERRICK', 'JERICHO', 'STAMFORD', 'NORTH BELLMORE', 'OYSTER BAY', 'BELLMORE', 'HICKSVILLE', 'LEVITTOWN', 'WANTAGH', 'SYOSSET', 'RIDGEFIELD', 'NEW CANAAN', 'SEAFORD', 'BETHPAGE', 'MASSAPEQUA', 'DARIEN', 'PLAINVIEW', 'NORTH MASSAPEQUA', 'LLOYD HARBOR', 'COLD SPRING HARBOR', 'MASSAPEQUA PARK', 'OLDBETHPAGE', 'FARMINGDALE', 'SOUTH FARMINGDALE', 'WILTON', 'HUNTINGTON', 'EAST FARMINGDALE', 'AMITYVILLE', 'MELVILLE', 'HUNTINGTON BAY', 'HUNTINGTON STATION', 'NORWALK', 'COPIAGUE', 'SOUTH HUNTINGTON', 'MANATI', 'WESTON', 'LINDENHURST', 'CENTERPORT', 'GREENLAWN', 'WYANDANCH', 'WESTPORT', 'WEST BABYLON', 'NORTHPORT', 'DIX HILLS', 'ELWOOD', 'DEER PARK', 'BABYLON', 'EAST NORTHPORT', 'NORTH BABYLON', 'WEST ISLIP', 'FORT SALONGA', 'EASTON', 'COMMACK', 'BRIGHTWATERS', 'FAIRFIELD', 'KINGS PARK', 'BRENTWOOD', 'BAY SHORE', 'ISLIP', 'HAUPPAUGE', 'CENTRAL ISLIP', 'TRUMBULL', 'SMITHTOWN', 'BRIDGEPORT', 'ISLIP TERRACE', 'ETOWAH MC', 'EAST ISLIP', 'NESCONSET', 'ST. JAMES', 'STONY BROOK', 'OAKDALE', 'STRATFORD', 'BOHEMIA', 'LAKE GROVE', 'LAKE RONKONKOMA', 'SETAUKET-EAST SETAUKET', 'CENTEREACH', 'WEST SAYVILLE', 'SAYVILLE', 'HOLBROOK', 'PORT JEFFERSON', 'BAYPORT', 'PORT JEFFERSON STATION', 'HOLTSVILLE', 'SELDEN', 'FARMINGVILLE', 'LONG BEACH LA', 'MOUNT SINAI', 'ORANGE NEW', 'PATCHOGUE', 'CORAM', 'MEDFORD', 'EAST PATCHOGUE', 'MILLER PLACE', 'SOUND BEACH', 'NORTH BELLPORT', 'MIDDLE ISLAND', 'BELLPORT', 'ROCKY POINT', 'RIDGE', 'SHIRLEY', 'MASTIC BEACH', 'MASTIC', 'CENTER MORICHES', 'RIVERHEAD', 'NORTHVILLE', 'EAST QUOGUE', 'MATTITUCK', 'HAMPTON BAYS', 'SOUTHAMPTON', 'NOYACK', 'SAG HARBOR', 'MONTAUK']
-```
-**Live Demo for Cities Selector is [here](https://www.loom.com/share/c77591a0281a43f492fd668c65aec76b?sid=8def12cc-94da-450e-8f8d-b11199969059)** 
 
 ## Wordpress Detector
 > If you append `/wp-admin` or `/wp-login.php` to the website's URL and it takes you to a login page, it is likely a WordPress site. Check whether the modified path is valid or not.
